@@ -2,6 +2,7 @@ import os
 import ujson
 import torch
 import random
+import codecs
 
 from collections import defaultdict, OrderedDict
 
@@ -37,7 +38,7 @@ def load_qrels(qrels_path):
     print_message("#> Loading qrels from", qrels_path, "...")
 
     qrels = OrderedDict()
-    with open(qrels_path, mode='r', encoding="utf-8") as f:
+    with codecs.open(qrels_path, mode='r', encoding="utf-8") as f:
         for line in f:
             qid, x, pid, y = map(int, line.strip().split('\t'))
             assert x == 0 and y == 1
@@ -61,7 +62,7 @@ def load_topK(topK_path):
 
     print_message("#> Loading the top-k per query from", topK_path, "...")
 
-    with open(topK_path) as f:
+    with codecs.open(topK_path, mode="r", encoding="utf-8") as f:
         for line_idx, line in enumerate(f):
             if line_idx and line_idx % (10*1000*1000) == 0:
                 print(line_idx, end=' ', flush=True)
@@ -94,7 +95,7 @@ def load_topK_pids(topK_path, qrels):
 
     print_message("#> Loading the top-k PIDs per query from", topK_path, "...")
 
-    with open(topK_path) as f:
+    with codecs.open(topK_path, mode="r", encoding="utf-8") as f:
         for line_idx, line in enumerate(f):
             if line_idx and line_idx % (10*1000*1000) == 0:
                 print(line_idx, end=' ', flush=True)

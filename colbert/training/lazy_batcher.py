@@ -1,6 +1,6 @@
 import os
 import ujson
-
+import codecs
 from functools import partial
 from colbert.utils.utils import print_message
 from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
@@ -32,7 +32,7 @@ class LazyBatcher():
 
         triples = []
 
-        with open(path) as f:
+        with codecs.open(path, encoding='utf-8') as f:
             for line_idx, line in enumerate(f):
                 if line_idx % nranks == rank:
                     qid, pos, neg = ujson.loads(line)
@@ -45,9 +45,9 @@ class LazyBatcher():
 
         queries = {}
 
-        with open(path) as f:
+        with codecs.open(path, encoding='utf-8') as f:
             for line in f:
-                qid, query = line.strip().split('\t')
+                qid, query, *_ = line.strip().split('\t')
                 qid = int(qid)
                 queries[qid] = query
 
@@ -58,7 +58,7 @@ class LazyBatcher():
 
         collection = []
 
-        with open(path) as f:
+        with codecs.open(path, encoding='utf-8') as f:
             for line_idx, line in enumerate(f):
                 pid, passage, title, *_ = line.strip().split('\t')
                 assert pid == 'id' or int(pid) == line_idx

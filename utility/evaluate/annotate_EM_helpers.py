@@ -1,10 +1,10 @@
 from colbert.utils.utils import print_message
-from utility.utils.dpr import DPR_normalize, has_answer
+from utility.utils.dpr import DPR_normalize, turkish_normalize, has_answer
 
 
 def tokenize_all_answers(args):
     qid, question, answers = args
-    return qid, question, [DPR_normalize(ans) for ans in answers]
+    return qid, question, [turkish_normalize(ans) for ans in answers]
 
 
 def assign_label_to_passage(args):

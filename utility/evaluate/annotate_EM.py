@@ -19,7 +19,16 @@ from utility.evaluate.annotate_EM_helpers import *
 def main(args):
     qas = load_qas_(args.qas)
     collection = load_collection_(args.collection, retain_titles=True)
-    rankings = load_ranking(args.ranking)
+    try:
+        rankings = load_ranking(args.ranking, types=[int, int, int, float, int])
+    except:
+        try:
+            rankings = load_ranking(args.ranking, types=[int, int, int, int])
+        except:
+            try:
+               rankings = load_ranking(args.ranking, types=[int, int, int])
+            except:
+               rankings = load_ranking(args.ranking, types=[int, int, int, str, int, int])
     parallel_pool = Pool(30)
 
     print_message('#> Tokenize the answers in the Q&As in parallel...')

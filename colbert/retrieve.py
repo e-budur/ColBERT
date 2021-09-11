@@ -9,7 +9,6 @@ from colbert.indexing.faiss import get_faiss_index_name
 from colbert.ranking.retrieval import retrieve
 from colbert.ranking.batch_retrieval import batch_retrieve
 
-
 def main():
     random.seed(12345)
 
@@ -50,7 +49,6 @@ def main():
             batch_retrieve(args)
         else:
             retrieve(args)
-
 
 if __name__ == "__main__":
     main()

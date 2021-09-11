@@ -25,7 +25,8 @@ def main():
 
     with Run.context():
         args.index_path = os.path.join(args.index_root, args.index_name)
-        assert not os.path.exists(args.index_path), args.index_path
+        print("args.index_path", args.index_path)
+        assert not os.path.exists(args.index_path)
 
         distributed.barrier(args.rank)
 
@@ -42,6 +43,7 @@ def main():
         distributed.barrier(args.rank)
 
         # Save metadata.
+        print("args.rank", args.rank)
         if args.rank < 1:
             metadata_path = os.path.join(args.index_path, 'metadata.json')
             print_message("Saving (the following) metadata to", metadata_path, "..")

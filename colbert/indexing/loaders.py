@@ -9,7 +9,7 @@ from colbert.utils.utils import print_message
 
 def get_parts(directory):
     extension = '.pt'
-
+    print('directory', directory)
     parts = sorted([int(filename[: -1 * len(extension)]) for filename in os.listdir(directory)
                     if filename.endswith(extension)])
 
@@ -18,7 +18,7 @@ def get_parts(directory):
     # Integer-sortedness matters.
     parts_paths = [os.path.join(directory, '{}{}'.format(filename, extension)) for filename in parts]
     samples_paths = [os.path.join(directory, '{}.sample'.format(filename)) for filename in parts]
-
+    print("parts", parts)
     return parts, parts_paths, samples_paths
 
 

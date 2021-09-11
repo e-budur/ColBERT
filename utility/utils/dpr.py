@@ -184,7 +184,7 @@ class SimpleTokenizer(Tokenizer):
 
 
 def has_answer(tokenized_answers, text):
-    text = DPR_normalize(text)
+    text = turkish_normalize(text)
 
     for single_answer in tokenized_answers:
         for i in range(0, len(text) - len(single_answer) + 1):
@@ -222,6 +222,9 @@ def DPR_tokenize(text):
 
 def DPR_normalize(text):
     return DPR_tokenize(text).words(uncased=True)
+
+def turkish_normalize(text):
+    return text.lower().split(" ")
 
 
 # Source: https://github.com/shmsw25/qa-hard-em/blob/master/prepro_util.py

@@ -3,6 +3,7 @@ import tqdm
 import torch
 import datetime
 import itertools
+import codecs
 
 from multiprocessing import Pool
 from collections import OrderedDict, defaultdict
@@ -179,7 +180,7 @@ def load_ranking(path, types=None, lazy=False):
         if types is None:
             types = itertools.cycle([int_or_float])
 
-        with open(path) as f:
+        with codecs.open(path, encoding="utf-8", mode="r") as f:
             lists = [[typ(x) for typ, x in zip_first(types, line.strip().split('\t'))]
                      for line in file_tqdm(f)]
 

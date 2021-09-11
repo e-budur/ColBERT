@@ -1,16 +1,17 @@
 import os
 import ujson
+import codecs
 
 from collections import defaultdict
 from colbert.utils.utils import print_message, file_tqdm
 
 
 def load_collection_(path, retain_titles):
-    with open(path) as f:
+    with codecs.open(path, encoding="utf-8", mode="r") as f:
         collection = []
 
         for line in file_tqdm(f):
-            _, passage, title = line.strip().split('\t')
+            _, passage, title, *_ = line.strip().split('\t')
 
             if retain_titles:
                 passage = title + ' | ' + passage
@@ -25,7 +26,7 @@ def load_qas_(path):
 
     triples = []
 
-    with open(path) as f:
+    with codecs.open(path, encoding="utf-8", mode="r") as f:
         for line in f:
             qa = ujson.loads(line)
             triples.append((qa['qid'], qa['question'], qa['answers']))

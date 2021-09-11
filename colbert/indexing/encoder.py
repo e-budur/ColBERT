@@ -1,8 +1,10 @@
 import os
 import time
+from typing import OrderedDict
 import torch
 import ujson
 import numpy as np
+import codecs
 
 import itertools
 import threading
@@ -42,7 +44,7 @@ class CollectionEncoder():
         self.iterator = self._initialize_iterator()
 
     def _initialize_iterator(self):
-        return open(self.collection)
+        return codecs.open(self.collection, mode="r", encoding="utf-8")
 
     def _saver_thread(self):
         for args in iter(self.saver_queue.get, None):
@@ -64,6 +66,7 @@ class CollectionEncoder():
         local_docs_processed = 0
 
         for batch_idx, (offset, lines, owner) in enumerate(self._batch_passages(self.iterator)):
+            print("owner: {}, self.process_idx: {}".format(owner, self.process_idx))
             if owner != self.process_idx:
                 continue
 

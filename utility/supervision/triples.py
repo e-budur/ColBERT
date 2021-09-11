@@ -76,7 +76,10 @@ def main(args):
     try:
         rankings = load_ranking(args.ranking, types=[int, int, int, float, int])
     except:
-        rankings = load_ranking(args.ranking, types=[int, int, int, int])
+        try:
+            rankings = load_ranking(args.ranking, types=[int, int, int, int])
+        except:
+            rankings = load_ranking(args.ranking, types=[int, int, int, str, int, int])
 
     print_message("#> Group by QID")
     qid2rankings = groupby_first_item(tqdm.tqdm(rankings))
@@ -138,6 +141,7 @@ if __name__ == "__main__":
 
     assert not os.path.exists(args.output), args.output
 
+    print("args.positives", args.positives)
     args.positives = [list(map(int, configuration.split(','))) for configuration in args.positives]
 
     assert all(len(x) == 2 for x in args.positives)
