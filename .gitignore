@@ -13,3 +13,10 @@ __pycache__/
 
 # mac
 .DS_Store
+
+#ebudur
+.vscode/
+ColBERT.egg-info/
+indexes/
+mlruns/
+slurm_output/
