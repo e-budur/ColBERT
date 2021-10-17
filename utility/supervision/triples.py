@@ -76,7 +76,10 @@ def main(args):
     try:
         rankings = load_ranking(args.ranking, types=[int, int, int, float, int])
     except:
-        rankings = load_ranking(args.ranking, types=[int, int, int, int])
+        try:
+            rankings = load_ranking(args.ranking, types=[int, int, int, int])
+        except:
+            rankings = load_ranking(args.ranking, types=[int, int, int, str, int, int])
 
     print_message("#> Group by QID")
     qid2rankings = groupby_first_item(tqdm.tqdm(rankings))

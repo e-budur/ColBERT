@@ -30,6 +30,7 @@ def load_sample(samples_paths, sample_fraction=None):
             part = part[torch.randint(0, high=part.size(0), size=(int(part.size(0) * sample_fraction),))]
         sample.append(part)
 
+    print("#> Sample size", len(sample))
     sample = torch.cat(sample).float().numpy()
 
     print("#> Sample has shape", sample.shape)

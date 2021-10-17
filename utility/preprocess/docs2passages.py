@@ -1,11 +1,15 @@
 """
     Divide a document collection into N-word/token passage spans (with wrap-around for last passage).
 """
+from multiprocessing import get_context
 
 import os
 import math
 import ujson
 import random
+import json
+import codecs 
+import tqdm
 
 from multiprocessing import Pool
 from argparse import ArgumentParser
@@ -14,7 +18,7 @@ from colbert.utils.utils import print_message
 Format1 = 'docid,text'  # MS MARCO Passages
 Format2 = 'docid,text,title'   # DPR Wikipedia
 Format3 = 'docid,url,title,text'  # MS MARCO Documents
-
+FormatWikiCirrusearchJsonl = 'wiki-cirrusearch'   # Wikipedia-Cirrussearch
 
 def process_page(inp):
     """
@@ -66,7 +70,7 @@ def main(args):
 
     NumIllFormattedLines = 0
 
-    with open(args.input) as f:
+    with codecs.open(args.input, encoding="utf-8") as f:
         for line_idx, line in enumerate(f):
             if line_idx % (100*1000) == 0:
                 print(line_idx, end=' ')
@@ -74,15 +78,19 @@ def main(args):
             title, url = None, None
 
             try:
-                line = line.strip().split('\t')
+                if args.format == FormatWikiCirrusearchJsonl:
+                    json_doc = json.loads(line)
+                    docid, url, title, doc = json_doc["id"], json_doc["url"], json_doc["title"], json_doc["contents"]
+                else:
+                    line = line.strip().split('\t')
 
-                if args.format == Format1:
-                    docid, doc = line
-                elif args.format == Format2:
-                    docid, doc, title = line
-                elif args.format == Format3:
-                    docid, url, title, doc = line
-
+                    if args.format == Format1:
+                        docid, doc = line
+                    elif args.format == Format2:
+                        docid, doc, title = line
+                    elif args.format == Format3:
+                        docid, url, title, doc = line
+                
                 RawCollection.append((line_idx, docid, title, url, doc))
             except:
                 NumIllFormattedLines += 1
@@ -93,39 +101,71 @@ def main(args):
     print()
     print_message("# of documents is", len(RawCollection), '\n')
 
-    p = Pool(args.nthreads)
+    with get_context("spawn").Pool() as p:
+        print_message("#> Starting parallel processing...")
 
-    print_message("#> Starting parallel processing...")
+        tokenizer = None
+        if args.use_wordpiece:
+            from transformers import BertTokenizerFast
+            tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
+            # tokenizer = BertTokenizerFast.from_pretrained('dbmdz/bert-base-turkish-cased')
 
-    tokenizer = None
-    if args.use_wordpiece:
-        from transformers import BertTokenizerFast
-        tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
+        print_message("#> Preparing process_page_params...")
+        process_page_params = [(args.nwords, args.overlap, tokenizer)] * len(RawCollection)
+        #Collection = p.map(process_page, zip(process_page_params, RawCollection))
 
-    process_page_params = [(args.nwords, args.overlap, tokenizer)] * len(RawCollection)
-    Collection = p.map(process_page, zip(process_page_params, RawCollection))
+        print_message("#> Starts parallel mapping...")
+        Collection = []
+        for collection_item in tqdm.tqdm(p.imap(process_page, zip(process_page_params, RawCollection)), total=len(RawCollection)):
+            Collection.append(collection_item)
+            
 
-    print_message(f"#> Writing to {output_path} ...")
-    with open(output_path, 'w') as f:
-        line_idx = 1
+        print_message(f"#> Writing to {output_path} ...")
+        with codecs.open(output_path, 'w', encoding="utf-8") as f:
+            line_idx = 1
 
-        if args.format == Format1:
-            f.write('\t'.join(['id', 'text']) + '\n')
-        elif args.format == Format2:
-            f.write('\t'.join(['id', 'text', 'title']) + '\n')
-        elif args.format == Format3:
-            f.write('\t'.join(['id', 'text', 'title', 'docid']) + '\n')
+            if args.format == Format1:
+                f.write('\t'.join(['id', 'text']) + '\n')
+            elif args.format == Format2:
+                f.write('\t'.join(['id', 'text', 'title']) + '\n')
+            elif args.format == Format3:
+                f.write('\t'.join(['id', 'text', 'title', 'docid']) + '\n')
+            elif args.format == FormatWikiCirrusearchJsonl:
+                f.write('\t'.join(['id', 'text', 'title', 'docid']) + '\n')
 
-        for docid, title, url, passages in Collection:
-            for passage in passages:
-                if args.format == Format1:
-                    f.write('\t'.join([str(line_idx), passage]) + '\n')
-                elif args.format == Format2:
-                    f.write('\t'.join([str(line_idx), passage, title]) + '\n')
-                elif args.format == Format3:
-                    f.write('\t'.join([str(line_idx), passage, title, docid]) + '\n')
+            for docid, title, url, passages in Collection:
+                for passage in passages:
+                    if args.format == Format1:
+                        f.write('\t'.join([str(line_idx), passage]) + '\n')
+                    elif args.format == Format2:
+                        f.write('\t'.join([str(line_idx), passage, title]) + '\n')
+                    elif args.format == Format3:
+                        f.write('\t'.join([str(line_idx), passage, title, docid]) + '\n')
+                    elif args.format == FormatWikiCirrusearchJsonl:
+                        f.write('\t'.join([str(line_idx), passage, title, docid]) + '\n')
 
-                line_idx += 1
+                    line_idx += 1
+        
+        if args.format == FormatWikiCirrusearchJsonl:
+            output_path = f'{output_path}.jsonl'
+            assert not os.path.exists(output_path)
+            print_message(f"#> Writing to {output_path} ...")
+            with codecs.open(output_path, 'w', encoding="utf-8") as f:
+                line_idx = 1
+
+                for docid, title, url, passages in Collection:
+                    for passage in passages:
+                        json_doc = {
+                            "id":line_idx,
+                            "contents":passage,
+                            "title":title,
+                            "docid":docid
+                        }
+                        json_str = json.dumps(json_doc, ensure_ascii=False)
+                        f.write(json_str + '\n')
+
+                        line_idx += 1
+
 
 
 if __name__ == "__main__":
@@ -133,7 +173,7 @@ if __name__ == "__main__":
 
     # Input Arguments.
     parser.add_argument('--input', dest='input', required=True)
-    parser.add_argument('--format', dest='format', required=True, choices=[Format1, Format2, Format3])
+    parser.add_argument('--format', dest='format', required=True, choices=[Format1, Format2, Format3, FormatWikiCirrusearchJsonl])
 
     # Output Arguments.
     parser.add_argument('--use-wordpiece', dest='use_wordpiece', default=False, action='store_true')

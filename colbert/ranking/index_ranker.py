@@ -8,7 +8,7 @@ from itertools import accumulate
 from colbert.parameters import DEVICE
 from colbert.utils.utils import print_message, dotdict, flatten
 
-BSIZE = 1 << 14
+BSIZE = 1 << 13
 
 
 class IndexRanker():

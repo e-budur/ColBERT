@@ -10,12 +10,15 @@ def load_collection_(path, retain_titles):
         collection = []
 
         for line in file_tqdm(f):
-            _, passage, title = line.strip().split('\t')
+            _, passage, title, docid, *_ = line.strip().split('\t')
 
             if retain_titles:
                 passage = title + ' | ' + passage
 
-            collection.append(passage)
+            collection.append({
+                'passage':passage,
+                'docid':docid
+            })
 
     return collection
 

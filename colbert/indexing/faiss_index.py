@@ -16,6 +16,7 @@ class FaissIndex():
         self.partitions = partitions
 
         self.gpu = FaissIndexGPU()
+        print_message(f"#> Found {self.gpu.ngpu} GPUs...")
         self.quantizer, self.index = self._create_index()
         self.offset = 0
 
