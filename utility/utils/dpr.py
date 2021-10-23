@@ -224,7 +224,7 @@ def DPR_normalize(text):
     return DPR_tokenize(text).words(uncased=True)
 
 def turkish_normalize(text):
-    return text.lower().split(" ")
+    return text.split(" ")
 
 
 # Source: https://github.com/shmsw25/qa-hard-em/blob/master/prepro_util.py
